@@ -4,7 +4,7 @@ function UkFlag(props) {
   return (
     <Svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="10 0 40 20"
+      viewBox="10 0 40 30"
       width={800}
       height={600}
       {...props}

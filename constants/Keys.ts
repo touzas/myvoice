@@ -1,3 +1,5 @@
+import { IsMobileDevice } from "./utils";
+
 export interface InputKey{
     line: number,
     value: string,
@@ -53,4 +55,4 @@ export const KeyboardKeys: InputKey[] = [
     { line: 5, value: 'Borrar', specialKey: true },
 ];
 
-export const DefaultFontSize:number = 24;
+export const DefaultFontSize:number = IsMobileDevice() ? 12 : 24;

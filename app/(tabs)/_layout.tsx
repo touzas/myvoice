@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs } from 'expo-router';
 import { Dimensions, Pressable } from 'react-native';
@@ -6,6 +6,8 @@ import { Dimensions, Pressable } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { GetDeviceOrientation, IsMobileDevice } from '@/constants/utils';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -17,12 +19,35 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [isMobile, setDeviceType] = React.useState(false);
+  const [orientation, setOrientation] = useState<ScreenOrientation.Orientation | null>(null); 
 
-  useEffect(() => {
-    setDeviceType(Dimensions.get('window').width < 700); 
+  useEffect(() => { 
+    const subscribeToOrientationChanges = async () => { 
+      const currentOrientation = await ScreenOrientation.getOrientationAsync(); 
+      setOrientation(currentOrientation); 
+      const subscription = ScreenOrientation.addOrientationChangeListener((event) => { 
+        setOrientation(event.orientationInfo.orientation); 
+      }); 
+      return () => { 
+        ScreenOrientation.removeOrientationChangeListener(subscription); 
+      }; 
+    }; 
+
+    subscribeToOrientationChanges(); 
   }, []);
 
+  const GetOrientationName = (orientation: ScreenOrientation.Orientation | null) => {
+    switch (orientation) {
+      case ScreenOrientation.Orientation.PORTRAIT_UP:
+      case ScreenOrientation.Orientation.PORTRAIT_DOWN:
+        return 'vertical';
+      case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+      case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+        return 'horizontal';
+      default:
+        return 'desconocida';
+    }
+  }
   return (
     <Tabs
       screenOptions={{
@@ -34,8 +59,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          headerShown: isMobile ? false : true,
-          title: 'Comunicador',
+          headerShown: IsMobileDevice() ? true : true,
+          title: 'Comunicador' + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (
             <Link href="/configuration" asChild>
