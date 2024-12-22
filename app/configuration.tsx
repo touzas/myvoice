@@ -6,7 +6,7 @@ import { Text, View } from '@/components/Themed';
 import Checkbox from 'expo-checkbox';
 import { Picker } from '@react-native-picker/picker';
 import * as Speech from 'expo-speech';
-import { IsDebug } from '@/constants/utils';
+import { IsDebug, GetSavedData } from '@/constants/utils';
 
 interface IstorageValues{
   name: string,
@@ -17,7 +17,6 @@ interface IstorageValues{
 }
 
 const MyComponent: React.FC = () => {
-  const [storedObject, setStoredObject] = useState<IstorageValues | null>(null);
   const [inputName, setInputName] = useState('');
   const [inputNumbers, setInputNumbers] = useState('1');
   const [inputAdvanced, setAdvanced] = useState(false);
@@ -25,31 +24,17 @@ const MyComponent: React.FC = () => {
   const [voiceList, setVoices] = useState(Array<{ name: string; identifier: string, language: string }>);
   const [voiceES, setVoiceES] = useState('');
   const [voiceEN, setVoiceEN] = useState('');
-  const storageKey = 'myConfiguration';
 
   useEffect(() => {
     const loadStoredValue = async () => {
       IsDebug && console.log('Cargando datos guardados');
-      try {
-        const jsonValue = await AsyncStorage.getItem(storageKey); 
-        if (jsonValue !== null) { 
-          IsDebug && console.log('Datos cargados');
-          setStoredObject(JSON.parse(jsonValue));
-          
-          if (storedObject !== null){
-            setInputName(storedObject.name);
-            setInputNumbers(storedObject.mathLength.toString());
-            setAdvanced(storedObject.isAdvancedMode);
-            setVoiceES(voiceES);
-            setVoiceEN(voiceEN);
-          } else{
-            console.log('Configuration is empty: ' + storedObject)
-          }
-        }else{
-          IsDebug && console.log('No hay datos!');
-        }
-      } catch (error) {
-        console.error('Error loading stored value:', error);
+      let storedData = await GetSavedData();
+      if (storedData !== null){
+        setInputName(storedData.name);
+        setInputNumbers(storedData.mathLength.toString());
+        setAdvanced(storedData.isAdvancedMode);
+        setVoiceES(storedData.selectedVoiceES);
+        setVoiceEN(storedData.selectedVoiceEN);
       }
     };
 
@@ -64,31 +49,10 @@ const MyComponent: React.FC = () => {
             //quality: voice.quality,
             language: voice.language
           })));
-    }
-
-    const getData = async () => {
-      try {
-        console.log('entra');
-        const jsonValue = await AsyncStorage.getItem('my-key');
-        if (jsonValue != null){
-          let savedData = JSON.parse(jsonValue);
-          setInputName(savedData.name);
-          setInputNumbers(savedData.mathLength.toString());
-          setAdvanced(savedData.isAdvancedMode);
-          setVoiceES(voiceES);
-          setVoiceEN(voiceEN);
-          setStoredObject(savedData);
-          console.log(savedData);
-        }
-        console.log('sale');
-      } catch (e) {
-        // error reading value
-      }
     };
 
-    //loadStoredValue();
+    loadStoredValue();
     loadVoices();
-    getData();
   }, []);
 
   const storeData = async () => {

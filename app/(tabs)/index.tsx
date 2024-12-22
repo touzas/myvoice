@@ -14,7 +14,7 @@ import * as Speech from 'expo-speech';
 import SpainFlag from '@/assets/images/SpainFlag';
 import UkFlag from '@/assets/images/UkFlag';
 import { HelloWave } from '@/components/HelloWave';
-import { IsMobileDevice, WindowHeight } from '@/constants/utils';
+import { IsMobileDevice, IsPortrait } from '@/constants/utils';
 
 export default function TabOneScreen() {
   const defaultIconSize: number = IsMobileDevice() ? 18 : 42;
@@ -37,18 +37,6 @@ export default function TabOneScreen() {
 
     subscribeToOrientationChanges(); 
   }, []);
-  
-  const IsPortrait = (orientation: ScreenOrientation.Orientation | null) => {
-    switch (orientation) {
-      case ScreenOrientation.Orientation.PORTRAIT_UP:
-      case ScreenOrientation.Orientation.PORTRAIT_DOWN:
-        return true;
-      case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-      case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-      default:
-        return false;
-    }
-  }
 
   //#region Keyboard Events
   const handleDelete = () => {
@@ -105,6 +93,64 @@ export default function TabOneScreen() {
     setIsSpeaking(false);
   };
   if (IsMobileDevice()) {
+    return (
+      <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
+        <View style={{flex: IsPortrait(orientation) ? 2 : 0.4}}>
+          <TextInput
+            style={styles.inputText}
+            placeholder="Escribe lo que quieras decir..."
+            editable={true} // Disable focus
+            showSoftInputOnFocus={false} // Disable native keyboard
+            multiline={true}
+            value={inputValue} 
+          />
+        </View>
+        <View style={{flex: 1, flexDirection: 'column'}}>
+          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
+            <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
+          </View>
+          <View style={{flex:0.23, flexDirection: 'row'}}>
+            <Pressable
+              key={'playES'}
+              style={{flex: 1, marginLeft: 10, marginRight: 10}}
+              onPressOut={() => playAudio('es-ES')} >
+              <Animated.View style={{
+                flexDirection: 'row',
+                backgroundColor: Colors.PinkTheme.Purple,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 5,
+                marginTop: 0,
+                borderRadius: 5,
+                borderColor: Colors.PinkTheme.Purple,
+                borderWidth: 2
+              }}>
+                <SpainFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
+                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>Castellano</Text>
+              </Animated.View>
+            </Pressable>
+            <Pressable
+              key={'playEN'}
+              style={{flex: 1, marginLeft: 10, marginRight: 10}}
+              onPressOut={() => playAudio('en-US')} >
+              <Animated.View style={{
+                flexDirection: 'row',
+                backgroundColor: Colors.PinkTheme.Purple,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding:5,
+                borderRadius: 5,
+                borderColor: Colors.PinkTheme.Purple,
+                borderWidth: 2
+              }}>
+                <UkFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
+                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>English</Text>
+              </Animated.View>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
   }
   else {
     return (

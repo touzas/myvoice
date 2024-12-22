@@ -52,7 +52,7 @@ const RenderLine: React.FC<LineDetails> = ({
             >
                 <Animated.View>
                     <Text style={ [key.specialKey ? styles.keyTextWhite : styles.keyText, null, animatedStyle] }>
-                        { !props.isUpperCase ? key.value.toLocaleLowerCase() : key.value.toLocaleUpperCase() }
+                        { !props.isUpperCase && !key.specialKey ? key.value.toLocaleLowerCase() : key.value.toLocaleUpperCase() }
                     </Text>
                 </Animated.View>
             </Pressable>
@@ -70,6 +70,7 @@ const getStyle = (key: string) => {
 }
 
 const KeyboardTextToVoice: React.FC<KeyboardProps> = ({ isUpperCase, onKeyPress }) => {
+
     return (
       <View style={styles.keyboard}>
         <View style={styles.keyboardLine} key={1}>
@@ -95,16 +96,14 @@ const defaultStyle = StyleSheet.create({
     Key: {
       flex:1,
       borderWidth: 1,
-      borderRadius: 8,
+      borderRadius: 18,
       borderColor: Colors.PinkTheme.Purple,
-      backgroundColor: Colors.PinkTheme.Pink,
+      backgroundColor: 'white',
       color: Colors.PinkTheme.Purple,
-      fontWeight: '900',
-      fontFamily: 'consolas',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 5,
-      margin: 1
+      margin: 1,
     },
     SpecialKey: {
       backgroundColor: 'purple',
@@ -137,6 +136,7 @@ const defaultStyle = StyleSheet.create({
     keyText: {
         fontSize: DefaultFontSize,
         color: 'purple',
+        fontWeight: '900'
     },
     keyTextWhite: {
         fontSize: DefaultFontSize,
