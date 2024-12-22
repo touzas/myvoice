@@ -59,30 +59,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          headerShown: IsMobileDevice() ? true : true,
-          title: 'Comunicador' + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/configuration" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors.PinkTheme.Purple}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          title: 'Comunicador',
+          tabBarIcon: ({ color }) => <TabBarIcon name="volume-up" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="configuration"
         options={{
-          title: 'Juega conmigo',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Configuración',
+          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
         }}
       />
     </Tabs>

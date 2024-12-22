@@ -3,7 +3,7 @@
     "name": "Eire - Voice",
     "slug": "My Voice",
     "version": "1.0.0",
-    "orientation": "automatic",
+    "orientation": "landscape",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",

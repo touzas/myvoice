@@ -109,7 +109,7 @@ export default function TabOneScreen() {
   else {
     return (
       <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
-        <View style={{flex: IsPortrait(orientation) ? 3 : 1.5}}>
+        <View style={{flex: 0.50}}>
           <TextInput
             style={styles.inputText}
             placeholder="Escribe lo que quieras decir..."
@@ -119,22 +119,22 @@ export default function TabOneScreen() {
             value={inputValue} 
           />
         </View>
-        <View style={{flex: 1, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
-          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
+        <View style={{flex: 1, flexDirection: 'column'}}>
+          <View style={{flex:1, paddingTop: 10}}>
             <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
           </View>
-          <View style={{flex:0.20, flexDirection: IsPortrait(orientation) ? 'row': 'column'}}>
+          <View style={{flex:0.50, flexDirection: 'row'}}>
             <Pressable
               key={'playES'}
               style={{flex: 1, marginLeft: 10, marginRight: 10}}
               onPressOut={() => playAudio('es-ES')} >
               <Animated.View style={{
-                flexDirection: IsPortrait(orientation) ? 'row' : 'column',
+                flexDirection: 'row',
                 backgroundColor: Colors.PinkTheme.Purple,
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: IsPortrait(orientation) ? 0 : 10,
-                marginTop: IsPortrait(orientation) ? 0 : 20,
+                padding: 10,
+                marginTop: 20,
                 borderRadius: 5,
                 borderColor: Colors.PinkTheme.Purple,
                 borderWidth: 2
@@ -148,11 +148,12 @@ export default function TabOneScreen() {
               style={{flex: 1, marginLeft: 10, marginRight: 10}}
               onPressOut={() => playAudio('en-US')} >
               <Animated.View style={{
-                flexDirection: IsPortrait(orientation) ? 'row' : 'column',
+                flexDirection: 'row',
                 backgroundColor: Colors.PinkTheme.Purple,
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: IsPortrait(orientation) ? 0 : 10,
+                padding: 10,
+                marginTop: 20,
                 borderRadius: 5,
                 borderColor: Colors.PinkTheme.Purple,
                 borderWidth: 2
