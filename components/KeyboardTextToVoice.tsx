@@ -143,6 +143,7 @@ const defaultStyle = StyleSheet.create({
     keyTextWhite: {
         fontSize: DefaultFontSize,
         color: 'white',
+        fontWeight: 'bold'
     },
   });
 
