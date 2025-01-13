@@ -52,7 +52,7 @@ const RenderLine: React.FC<LineDetails> = ({
             >
                 <Animated.View>
                     <Text style={ [key.specialKey ? styles.keyTextWhite : styles.keyText, null, animatedStyle] }>
-                        { !props.isUpperCase ? key.value.toLocaleLowerCase() : key.value.toLocaleUpperCase() }
+                        { !props.isUpperCase && !key.specialKey ? key.value.toLocaleLowerCase() : key.value.toLocaleUpperCase() }
                     </Text>
                 </Animated.View>
             </Pressable>
@@ -116,14 +116,15 @@ const defaultStyle = StyleSheet.create({
     keyboard : {
         display: 'flex', 
         flexDirection: 'column',
-        flex: 1
+        flex: 1,
     },
     keyboardLine : {
         display:'flex', 
         flexDirection: 'row'
     },
     key:{
-      ...defaultStyle.Key
+      ...defaultStyle.Key,
+      backgroundColor: 'white',
     },
     spaceKey: {
       ...defaultStyle.Key,

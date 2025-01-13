@@ -60,7 +60,8 @@ export default function TabLayout() {
         name="index"
         options={{
           headerShown: IsMobileDevice() ? true : true,
-          title: 'Comunicador' + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
+          //title: 'Comunicador' + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
+          title: 'Comunicador',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (
             <Link href="/configuration" asChild>
@@ -83,6 +84,13 @@ export default function TabLayout() {
         options={{
           title: 'Juega conmigo',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="daily"
+        options={{
+          title: 'Horario',
+          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
         }}
       />
     </Tabs>

@@ -38,30 +38,34 @@ export default function TabTwoScreen() {
   
   return (
     <View style={styles.container}>
-      <View style={styles.calculator}>
-        <View style={styles.box}>
-          <Text style={styles.textBox}>{numberOne}</Text>
-        </View>
-        <View style={styles.box}>
-          <Text style={styles.textBox}>{operation}</Text>
-        </View>
-        <View style={styles.box}>
-          <Text style={styles.textBox}>{numberTwo}</Text>
-        </View>
-        <View style={styles.box}>
-          <Text style={styles.textBox}>=</Text>
-        </View>
-        <View style={styles.box}>
-        <TextInput
-          style={styles.input}
-          placeholder=""
-          onChangeText={checkResult}
-          key='mathLength'
-        />
+      <Text style={styles.title}>Calculadora</Text>
+      <View style={styles.body}>
+        <View style={styles.calculator}>
+          <View style={styles.box}>
+            <Text style={styles.textBox}>{numberOne}</Text>
+          </View>
+          <View style={styles.box}>
+            <Text style={styles.textBox}>{operation}</Text>
+          </View>
+          <View style={styles.box}>
+            <Text style={styles.textBox}>{numberTwo}</Text>
+          </View>
+          <View style={styles.box}>
+            <Text style={styles.textBox}>=</Text>
+          </View>
+          <View style={styles.box}>
+          <TextInput
+            style={styles.input}
+            placeholder=""
+            onChangeText={checkResult}
+            key='mathLength'
+            keyboardType='numeric'
+          />
+          </View>
         </View>
       </View>
-      <View>
-        <Text>{result}</Text>
+      <View style={styles.result}>
+        <Text style={styles.resultText}>{result}</Text>
       </View>
     </View>
   );
@@ -72,12 +76,25 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignContent: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+  },
+  title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: Colors.PinkTheme.Purple,
+      textAlign: 'center',
+  },
+  body: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'center',
   },
   calculator: {
     display: 'flex',
     flex: 1,
-    flexDirection: 'row'
+    flexDirection: 'row',
+    backgroundColor: 'white',
   },
   box: {
     flex:5,
@@ -86,7 +103,7 @@ const styles = StyleSheet.create({
     padding: 30,
     borderWidth: 5,
     borderColor: Colors.PinkTheme.Purple,
-    margin: 3
+    margin: 3,
   },
   textBox:{
     textAlign: 'center',
@@ -97,6 +114,22 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 50,
-    borderWidth: 3
+    borderWidth: 3,
+    backgroundColor: 'white',
+    textAlign: 'center',
+  },
+  result: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    padding: 40,
+  },
+  resultText: {
+    fontSize: 50,
+    fontWeight: 'bold',
+    color: Colors.PinkTheme.Purple,
+    textAlign: 'center',
   }
 });

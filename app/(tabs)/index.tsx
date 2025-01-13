@@ -108,7 +108,7 @@ export default function TabOneScreen() {
   }
   else {
     return (
-      <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
+      <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5 }}>
         <View style={{flex: IsPortrait(orientation) ? 3 : 1.5}}>
           <TextInput
             style={styles.inputText}
@@ -117,10 +117,11 @@ export default function TabOneScreen() {
             showSoftInputOnFocus={false} // Disable native keyboard
             multiline={true}
             value={inputValue} 
+            cursorColor={Colors.PinkTheme.Purple}
           />
         </View>
         <View style={{flex: 1, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
-          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
+          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 18}}>
             <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
           </View>
           <View style={{flex:0.20, flexDirection: IsPortrait(orientation) ? 'row': 'column'}}>
