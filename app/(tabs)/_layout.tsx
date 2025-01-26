@@ -61,7 +61,7 @@ export default function TabLayout() {
         options={{
           headerShown: IsMobileDevice() ? true : true,
           //title: 'Comunicador' + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
-          title: 'Comunicador',
+          title: 'Comunicador - La voz de Eire',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (
             <Link href="/configuration" asChild>

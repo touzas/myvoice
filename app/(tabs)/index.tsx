@@ -86,7 +86,6 @@ export default function TabOneScreen() {
     else if (key === '↲') return handleKeyEnter();
 
     setInputValue((prev) => prev + (isUppercase ? key.toLocaleUpperCase() : key.toLocaleLowerCase() ) );
-    console.log('=> ' + key)
   };
   //#endregion
 
@@ -118,6 +117,7 @@ export default function TabOneScreen() {
             multiline={true}
             value={inputValue} 
             cursorColor={Colors.PinkTheme.Purple}
+            selectionColor={Colors.PinkTheme.Purple}
           />
         </View>
         <View style={{flex: 1, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
