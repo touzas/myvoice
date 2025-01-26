@@ -3,7 +3,7 @@
     "name": "Eire - Voice",
     "slug": "Eire-Voice-Tablet",
     "version": "1.0.0",
-    "orientation": "automatic",
+    "orientation": "sensorPortrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
