@@ -91,6 +91,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="tasks" color={color} />,
         }}
       />
+      {
+      /*
       <Tabs.Screen
         name="math"
         options={{
@@ -98,6 +100,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="gamepad" color={color} />,
         }}
       />
+      */
+      }
       <Tabs.Screen
         name='tictactoe'
         options={{

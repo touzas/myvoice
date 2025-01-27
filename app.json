@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "Eire - Voice",
-    "slug": "My Voice",
-    "version": "1.0.0",
-    "orientation": "automatic",
+    "slug": "Eire-Voice-V2",
+    "version": "1.1.0",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.touzas.EireVoiceV2"
     },
     "web": {
       "bundler": "metro",
@@ -29,10 +30,24 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "ALL"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5c1f03d5-5993-4218-b0db-5716abfa6b1c"
+      }
     }
   }
 }

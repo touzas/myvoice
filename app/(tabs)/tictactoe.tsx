@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   board: {
     width: '80%',
-    height: '80%',
+    height: '70%',
     flexDirection: "row",
     flexWrap: "wrap",
     borderWidth: 2,

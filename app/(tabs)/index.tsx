@@ -95,7 +95,7 @@ export default function TabOneScreen() {
   if (IsMobileDevice()) {
     return (
       <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
-        <View style={{flex: IsPortrait(orientation) ? 2 : 0.4}}>
+        <View style={{flex: IsPortrait(orientation) ? 10 : 20}}>
           <TextInput
             style={styles.inputText}
             placeholder="Escribe lo que quieras decir..."
@@ -165,7 +165,7 @@ export default function TabOneScreen() {
             value={inputValue} 
           />
         </View>
-        <View style={{flex: 1, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
+        <View style={{flex: 1.3, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
           <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
             <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
           </View>
