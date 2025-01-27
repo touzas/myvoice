@@ -108,7 +108,7 @@ export default function TabOneScreen() {
   else {
     return (
       <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5 }}>
-        <View style={{flex: IsPortrait(orientation) ? 3 : 1.5}}>
+        <View style={{flex: IsPortrait(orientation) ? 2.5 : 1.2 /*2.5 Tablet cole, 3 Tablet casa. */ }}> 
           <TextInput
             style={styles.inputText}
             placeholder="Escribe lo que quieras decir..."
