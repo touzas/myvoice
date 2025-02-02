@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
     height: '70%',
     flexDirection: "row",
     flexWrap: "wrap",
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: "purple",
-    backgroundColor: "pink",
+    backgroundColor: "#f9f9f9",
   },
   square: {
     width: "33.33%",
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     borderColor: "purple",
   },
   squareText: {
-    fontSize: 48,
+    fontSize: 80,
     fontWeight: "bold",
     color: "purple",
   },

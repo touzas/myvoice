@@ -12,6 +12,7 @@ import {
 type Task = {
   id: string;
   title: string;
+  deleted: boolean;
   completed: boolean;
 };
 
@@ -21,17 +22,28 @@ const Agenda: React.FC = () => {
 
   const handleAddTask = () => {
     if (!taskTitle.trim()) {
-      Alert.alert("Invalid Input", "Task title cannot be empty.");
+      Alert.alert("Error!", "La tarea no puede estar vacía.");
       return;
     }
     const newTask: Task = {
-      id: Math.random().toString(),
+      id: (tasks.length + 1).toString(),
       title: taskTitle.trim(),
       completed: false,
+      deleted: false,
     };
     setTasks((prevTasks) => [newTask, ...prevTasks]);
     setTaskTitle("");
   };
+
+  const handleClearTask = () => {
+    Alert.alert('Estás segur@?', '¿Quieres borrar todo?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {text: 'OK', onPress: () => setTasks([]) },
+    ]);
+  }
 
   const handleToggleTask = (id: string) => {
     setTasks((prevTasks) =>
@@ -42,7 +54,11 @@ const Agenda: React.FC = () => {
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, deleted: !task.deleted } : task
+      )
+    );
   };
 
   const checkEnter = ({ nativeEvent }: { nativeEvent: any }) => {
@@ -52,20 +68,39 @@ const Agenda: React.FC = () => {
   };
 
   const renderTask = ({ item }: { item: Task }) => (
-    <View style={styles.task}>
+    <View style={[styles.task, 
+          item.completed && styles.taskCompleted, 
+          item.deleted && styles.taskDeleted
+      ]}>
+      <Text style={styles.taskNumber}>{item.id}</Text>
       <TouchableOpacity
         style={styles.taskTextContainer}
         onPress={() => handleToggleTask(item.id)}
       >
-        <Text style={[styles.taskText, item.completed && styles.completedTask]}>
+        <Text style={[styles.taskText, 
+            item.completed && styles.completedTask, 
+            item.deleted && styles.deletedTask
+        ]}>
           {item.title}
         </Text>
       </TouchableOpacity>
+      {!item.deleted && ( 
+        <TouchableOpacity
+          style={[styles.completeButton, item.completed && styles.uncompleteButton]}
+          onPress={() => handleToggleTask(item.id)}
+        >
+          <Text style={styles.completeButtonText}>
+            {item.completed ?'Retomar' : 'Completar'}
+          </Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity
-        style={styles.deleteButton}
+        style={[styles.deleteButton, item.deleted && styles.undeleteButton]}
         onPress={() => handleDeleteTask(item.id)}
       >
-        <Text style={styles.deleteButtonText}>Delete</Text>
+        <Text style={styles.deleteButtonText}>
+          {item.deleted ? 'Recuperar' : 'Eliminar'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -86,13 +121,20 @@ const Agenda: React.FC = () => {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={tasks}
+        data={tasks.slice().reverse()}
         keyExtractor={(item) => item.id}
         renderItem={renderTask}
+        inverted={false}
         ListEmptyComponent={
           <Text style={styles.emptyMessage}>Todavía no hay tareas. Añade una!</Text>
         }
+        extraData={tasks.length}
       />
+      <View style={{ alignItems: 'center' }} >
+        <TouchableOpacity style={styles.cleanButton} onPress={handleClearTask}>
+          <Text style={styles.addButtonText}>Eliminar todas</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -138,6 +180,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  cleanButton: {
+    marginLeft: 10,
+    backgroundColor: 'red',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    justifyContent: "center",
+  },
   task: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -149,14 +199,32 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#fff",
   },
+  taskCompleted: {
+    borderColor: "green",
+    backgroundColor: "#f0fff0",
+  },
+  taskDeleted: {
+    borderColor: "#888",
+    backgroundColor: "#f9f9f9",
+  },
   taskTextContainer: {
     flex: 1,
+  },
+  taskNumber: {
+    fontSize: 16,
+    color: "#000",
+    fontWeight: 'bold',
+    marginRight: 10,
   },
   taskText: {
     fontSize: 16,
     color: "#333",
   },
   completedTask: {
+    textDecorationLine: "none",
+    color: "green",
+  },
+  deletedTask: {
     textDecorationLine: "line-through",
     color: "#888",
   },
@@ -167,8 +235,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
   },
+  uncompleteButton: {
+    backgroundColor: "lightblue",
+  },
+  undeleteButton: {
+    backgroundColor: "lightcoral",
+  },
   deleteButtonText: {
     color: "#fff",
+    fontSize: 14,
+  },
+  completeButton: {
+    marginLeft: 10,
+    backgroundColor: "lightgreen",
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  completeButtonText: {
+    color: "#333",
     fontSize: 14,
   },
   emptyMessage: {
