@@ -6,7 +6,7 @@ import { Dimensions, Pressable } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-import { GetOrientationName, GetSavedData, IsMobileDevice, IsPortrait } from '@/constants/utils';
+import { GetOrientationName, GetSavedData, IsTablet, IsPortrait } from '@/constants/utils';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -65,7 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          headerShown: IsMobileDevice() && !IsPortrait(orientation) ? false : true,
+          headerShown: !IsTablet() && !IsPortrait(orientation) ? false : true,
           title: 'Comunicador de ' + userName, // + (IsMobileDevice() ? ' móvil ' : ' tablet ') + (GetOrientationName(orientation)),
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (

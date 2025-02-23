@@ -4,9 +4,9 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity,
   FlatList,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 
 type Task = {
@@ -15,6 +15,8 @@ type Task = {
   deleted: boolean;
   completed: boolean;
 };
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const Agenda: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -67,15 +69,17 @@ const Agenda: React.FC = () => {
     }
   };
 
-  const renderTask = ({ item }: { item: Task }) => (
+  const renderTask = ({ item, index, drag }: { item: Task; index: number; drag: () => void }) => (
     <View style={[styles.task, 
           item.completed && styles.taskCompleted, 
           item.deleted && styles.taskDeleted
-      ]}>
-      <Text style={styles.taskNumber}>{item.id}</Text>
+      ]}
+    >
+      <Text style={styles.taskNumber}>{index}</Text>
       <TouchableOpacity
         style={styles.taskTextContainer}
         onPress={() => handleToggleTask(item.id)}
+		onLongPress={drag}
       >
         <Text style={[styles.taskText, 
             item.completed && styles.completedTask, 
@@ -106,36 +110,41 @@ const Agenda: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Agenda</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Inserta la tarea que desees"
-          value={taskTitle}
-          onChangeText={setTaskTitle}
-          onKeyPress={checkEnter}
+    <GestureHandlerRootView style={{flex: 1}}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Agenda</Text>
+        <View style={styles.inputContainer}>
+			<TextInput
+				style={styles.input}
+				placeholder="Inserta la tarea que desees"
+				value={taskTitle}
+				onChangeText={setTaskTitle}
+				onKeyPress={checkEnter}
+			/>
+			<TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+			<Text style={styles.addButtonText}>Añadir</Text>
+		</TouchableOpacity>
+        </View>
+        <DraggableFlatList
+			data={tasks.slice().reverse()}
+			keyExtractor={(item: Task) => item.id}
+			renderItem={({ item, drag }) => (
+            	renderTask({ item, index: tasks.length - tasks.findIndex(t => t.id === item.id) - 1, drag })
+          	)}
+			inverted={false}
+			ListEmptyComponent={
+            	<Text style={styles.emptyMessage}>Todavía no hay tareas. Añade una!</Text>
+          }
+          extraData={tasks.length}
+          onDragEnd={({ data }) => setTasks(data.reverse())}
         />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
-          <Text style={styles.addButtonText}>Añadir</Text>
-        </TouchableOpacity>
+        <View style={{ alignItems: 'center' }} >
+          <TouchableOpacity style={styles.cleanButton} onPress={handleClearTask}>
+            <Text style={styles.addButtonText}>Eliminar todas</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <FlatList
-        data={tasks.slice().reverse()}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTask}
-        inverted={false}
-        ListEmptyComponent={
-          <Text style={styles.emptyMessage}>Todavía no hay tareas. Añade una!</Text>
-        }
-        extraData={tasks.length}
-      />
-      <View style={{ alignItems: 'center' }} >
-        <TouchableOpacity style={styles.cleanButton} onPress={handleClearTask}>
-          <Text style={styles.addButtonText}>Eliminar todas</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </GestureHandlerRootView>
   );
 };
 

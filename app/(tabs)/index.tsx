@@ -1,28 +1,25 @@
-import { 
-  Alert, 
-  Animated, 
-  Pressable, 
-  StyleSheet, 
-  TextInput 
-} from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
+import { Alert, Animated, Pressable, StyleSheet, TextInput } from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import KeyboardTextToVoice from '@/components/KeyboardTextToVoice';
 import { Text, View } from '@/components/Themed';
 import Colors from '@/constants/Colors';
-import * as Speech from 'expo-speech';
 import SpainFlag from '@/assets/images/SpainFlag';
 import UkFlag from '@/assets/images/UkFlag';
-import { HelloWave } from '@/components/HelloWave';
-import { IsMobileDevice, IsPortrait } from '@/constants/utils';
+import { IsTablet, IsLandscape, IsDebug, GetSavedData } from '@/constants/utils';
 
 export default function TabOneScreen() {
-  const defaultIconSize: number = IsMobileDevice() ? 18 : 42;
-  const [isUppercase, SetUppercase] = useState(true);
-  const [inputValue, setInputValue] = useState<string>('');
+  const defaultIconSize = IsTablet() ? 42 : 18;
+  const [isUppercase, setIsUppercase] = useState(true);
+  const [inputValue, setInputValue] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [orientation, setOrientation] = useState<ScreenOrientation.Orientation | null>(null); 
-
+  const [orientation, setOrientation] = useState<ScreenOrientation.Orientation | null>(null);
+  const [log, setLogsByDate] = useState<{ [date: string]: string[] }>({});
+  const [isAdvancedMode, setAdvancedMode] = useState(false);
+ 
   useEffect(() => { 
     const subscribeToOrientationChanges = async () => { 
       const currentOrientation = await ScreenOrientation.getOrientationAsync(); 
@@ -34,239 +31,183 @@ export default function TabOneScreen() {
         ScreenOrientation.removeOrientationChangeListener(subscription); 
       }; 
     }; 
+	const loadStoredValue = async () => {
+		IsDebug && console.log('Cargando datos guardados');
+		let storedData = await GetSavedData();
+		if (storedData !== null){
+			setAdvancedMode(storedData.isAdvancedMode);
+		}
+	};
 
-    subscribeToOrientationChanges(); 
+	loadStoredValue();
+    subscribeToOrientationChanges();
   }, []);
 
-  //#region Keyboard Events
-  const handleDelete = () => {
-      setInputValue((prev) => prev.slice(0, -1));
-  };
+	const getCurrentDate = (): string => {
+		const date = new Date();
+		return date.toISOString().split('T')[0];
+	};
 
-  const handleClear = () => {
-      setInputValue('');
-  };
+	const addLogEntry = async (logData: string) => {
+        if (logData.trim() === '') return;
 
-  const handleUppercase = () => {
-      SetUppercase(!isUppercase);
-  }
+        const today = getCurrentDate();
+        const updatedLogs: { [key: string]: string[] } = { ...log };
 
-  const handleKeyEnter = () => {
-      setInputValue((prev) => prev + '\n');
-  }
+        if (!updatedLogs[today]) {
+            updatedLogs[today] = [];
+        }
 
-  const confirmDeleteAll = () => {
-      Alert.alert('Estás segur@?', '¿Quieres borrar todo el texto?', [
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {text: 'OK', onPress: () => handleClear() },
-      ]);
-  }
+        updatedLogs[today].push(logData);
+        setLogsByDate(updatedLogs);
+
+        try {
+            await AsyncStorage.setItem('eireVoiceLog', JSON.stringify(updatedLogs));
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo guardar la entrada.');
+        }
+    };
 
   const handleKeyPress = (key: string) => {
-    if (key === '⌫') return handleDelete();
-    else if (key === 'Borrar') return confirmDeleteAll();
-    else if (key === 'Espacio') return handleKeyPress(' ');
-    else if (key === '⇑') return handleUppercase();
-    else if (key === '↲') return handleKeyEnter();
+    const actions: Record<string, () => void> = {
+      '⌫': () => setInputValue((prev) => prev.slice(0, -1)),
+      Borrar: () => Alert.alert('Estás segur@?', '¿Quieres borrar todo el texto?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'OK', onPress: () => setInputValue('') },
+      ]),
+      Espacio: () => handleKeyPress(' '),
+      '⇑': () => setIsUppercase(!isUppercase),
+      '↲': () => setInputValue((prev) => prev + '\n'),
+    };
 
-    setInputValue((prev) => prev + (isUppercase ? key.toLocaleUpperCase() : key.toLocaleLowerCase() ) );
-    console.log('=> ' + key)
+    if (!actions[key]) {
+      setInputValue((prev) => prev + (isUppercase ? key.toUpperCase() : key.toLowerCase()));
+    } else {
+      actions[key]();
+    }
   };
-  //#endregion
 
   const playAudio = async (language: string) => {
-    let options = {
-      voice: "es-es-x-eed-local",// "en-us-x-tpc-local",
-      language: language,
-      pitch: 1.5,
-      rate: 1
-    };
-    if (isSpeaking) 
-      return;
-
+    if (isSpeaking) return;
     setIsSpeaking(true);
-    await Speech.speak(inputValue, options);
+    addLogEntry(language + '=>' + inputValue);
+    await Speech.speak(
+      inputValue, 
+      { 
+        voice: language === 'es' ? 'es-es-x-eed-local' : "en-us-x-tpc-local", 
+        language, pitch: 1.5, rate: 1 
+      }
+    );
     setIsSpeaking(false);
   };
-  if (IsMobileDevice()) {
-    return (
-      <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
-        <View style={{flex: IsPortrait(orientation) ? 10 : 20}}>
-          <TextInput
-            style={styles.inputText}
-            placeholder="Escribe lo que quieras decir..."
-            editable={true} // Disable focus
-            showSoftInputOnFocus={false} // Disable native keyboard
-            multiline={true}
-            value={inputValue} 
-          />
-        </View>
-        <View style={{flex: 1, flexDirection: 'column'}}>
-          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
-            <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
-          </View>
-          <View style={{flex:0.23, flexDirection: 'row'}}>
-            <Pressable
-              key={'playES'}
-              style={{flex: 1, marginLeft: 10, marginRight: 10}}
-              onPressOut={() => playAudio('es-ES')} >
-              <Animated.View style={{
-                flexDirection: 'row',
-                backgroundColor: Colors.PinkTheme.Purple,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: 5,
-                marginTop: 0,
-                borderRadius: 5,
-                borderColor: Colors.PinkTheme.Purple,
-                borderWidth: 2
-              }}>
-                <SpainFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
-                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>Castellano</Text>
-              </Animated.View>
-            </Pressable>
-            <Pressable
-              key={'playEN'}
-              style={{flex: 1, marginLeft: 10, marginRight: 10}}
-              onPressOut={() => playAudio('en-US')} >
-              <Animated.View style={{
-                flexDirection: 'row',
-                backgroundColor: Colors.PinkTheme.Purple,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding:5,
-                borderRadius: 5,
-                borderColor: Colors.PinkTheme.Purple,
-                borderWidth: 2
-              }}>
-                <UkFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
-                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>English</Text>
-              </Animated.View>
-            </Pressable>
-          </View>
+
+  const renderFlagButton = (language: string, Flag: React.FC<{ width: number, height: number }>, label: string) => (
+    <Pressable style={stylesLandScapeTablet.flagButton} onPress={() => playAudio(language)}>
+      <Animated.View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.flagContainerLandScape: defaultStyles.flagContainer}>
+        <Flag width={defaultIconSize} height={defaultIconSize} />
+        <Text style={stylesLandScapeTablet.buttonPlayText}>{label}</Text>
+      </Animated.View>
+    </Pressable>
+  );
+
+  const renderContent = () => (
+    <View style={stylesLandScapeTablet.container}>
+      <TextInput
+        style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.inputTextTabletLandScape : defaultStyles.inputText}
+        placeholder = { `Landscape` + IsLandscape(orientation).toString() + `| Tablet: `+ IsTablet()} //"Escribe lo que quieras decir..."
+        editable={isAdvancedMode}
+        showSoftInputOnFocus={isAdvancedMode}
+        multiline
+        value={inputValue}
+		onChangeText={setInputValue}
+      />
+      <View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.keyboardSectionLandScape : defaultStyles.keyboardSection}>
+		{!isAdvancedMode && (
+			<View style={stylesLandScapeTablet.keyboard}>
+				<KeyboardTextToVoice onKeyPress={handleKeyPress} isUpperCase={isUppercase} />
+			</View>
+		)}
+        <View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.flagSectionLandScape : defaultStyles.flagSection}>
+          {renderFlagButton('es-ES', SpainFlag, 'Castellano')}
+          {renderFlagButton('en-US', UkFlag, 'English')}
         </View>
       </View>
-    );
-  }
-  else {
-    return (
-      <View style={{display: 'flex', flexDirection: 'column', backgroundColor: Colors.PinkTheme.Purple, width: '100%', height:'100%', padding: 5}}>
-        <View style={{flex: IsPortrait(orientation) ? 3 : 1.5}}>
-          <TextInput
-            style={styles.inputText}
-            placeholder="Escribe lo que quieras decir..."
-            editable={true} // Disable focus
-            showSoftInputOnFocus={false} // Disable native keyboard
-            multiline={true}
-            value={inputValue} 
-          />
-        </View>
-        <View style={{flex: 1.3, flexDirection: IsPortrait(orientation) ? 'column' : 'row'}}>
-          <View style={{flex:1, paddingTop: IsPortrait(orientation) ? 0 : 10}}>
-            <KeyboardTextToVoice onKeyPress={ handleKeyPress } isUpperCase={isUppercase}/>
-          </View>
-          <View style={{flex:0.20, flexDirection: IsPortrait(orientation) ? 'row': 'column'}}>
-            <Pressable
-              key={'playES'}
-              style={{flex: 1, marginLeft: 10, marginRight: 10}}
-              onPressOut={() => playAudio('es-ES')} >
-              <Animated.View style={{
-                flexDirection: IsPortrait(orientation) ? 'row' : 'column',
-                backgroundColor: Colors.PinkTheme.Purple,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: IsPortrait(orientation) ? 0 : 10,
-                marginTop: IsPortrait(orientation) ? 0 : 20,
-                borderRadius: 5,
-                borderColor: Colors.PinkTheme.Purple,
-                borderWidth: 2
-              }}>
-                <SpainFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
-                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>Castellano</Text>
-              </Animated.View>
-            </Pressable>
-            <Pressable
-              key={'playEN'}
-              style={{flex: 1, marginLeft: 10, marginRight: 10}}
-              onPressOut={() => playAudio('en-US')} >
-              <Animated.View style={{
-                flexDirection: IsPortrait(orientation) ? 'row' : 'column',
-                backgroundColor: Colors.PinkTheme.Purple,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: IsPortrait(orientation) ? 0 : 10,
-                borderRadius: 5,
-                borderColor: Colors.PinkTheme.Purple,
-                borderWidth: 2
-              }}>
-                <UkFlag width={defaultIconSize} height={defaultIconSize} style={{marginRight: 5}} />
-                <Text style={IsMobileDevice() ? styles.buttonPlayTextMobile : styles.buttonPlayText}>English</Text>
-              </Animated.View>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  }
+    </View>
+  );
+
+  return renderContent();
 }
 
-const styles = StyleSheet.create({
-  container: {
-    display: 'flex', 
-    flex: 1, 
-    flexDirection: 'column', 
-    backgroundColor: 'white', 
-    padding: 10
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: Colors.PinkTheme.Purple
-  },
-  inputTextContainer: {
-    display: 'flex', 
-    flexDirection: 'row', 
-    backgroundColor: 'white',
-    marginTop: 10,
-    marginBottom: 10
-  },
-  inputText : {
-    borderRadius:5, 
-    borderColor: Colors.PinkTheme.Purple, 
-    borderWidth:1, 
-    flex:1,
-    fontSize: 40,
+const defaultStyles = StyleSheet.create({
+  inputText: {
+    borderRadius: 5,
+    borderColor: Colors.PinkTheme.Purple,
+    borderWidth: 1,
     color: '#333',
     fontWeight: '900',
-    verticalAlign: 'top',
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    padding: 10,
+    flex: 1.8,
+    fontSize: 40,
   },
-  keyboardContainer: {
-    display: 'flex',  
-    flexDirection: 'row'
+  keyboardSection: { 
+    flex: 1,
+    flexDirection: 'column',
   },
-  keyboardContainerMobile: {
-    flexDirection: 'column'
+  flagContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.PinkTheme.Purple,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 5,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: Colors.PinkTheme.Purple,
+  },
+  flagSection: { 
+    flexDirection: 'row',
+    justifyContent: 'space-around', 
+    paddingVertical: 10 
+  },
+});
+
+
+const stylesLandScapeTablet = StyleSheet.create({
+  container: { 
+    flex: 3, 
+    backgroundColor: Colors.PinkTheme.Purple, 
+    padding: 5 
+  },
+  inputTextTabletLandScape: {
+    ...defaultStyles.inputText,
+    flex: 3,
+    fontSize: 40,
+  },
+  keyboardSectionLandScape: { 
+    flexDirection: 'row',
+    flex: 3,
+    backgroundColor: 'red',
   },
   keyboard: {
-    display: 'flex', 
-    flex: 6, 
-    paddingTop: 20
+    flex:1,
+    flexDirection: 'column',
   },
-  buttonPlayText: {
-    color: 'white',
-    fontSize: 20,
-    minWidth: 140,
-    textAlign: 'center'
+  flagSectionLandScape: { 
+    flexDirection: 'column',
+    justifyContent: 'space-around', 
+    paddingVertical: 50 
   },
-  buttonPlayTextMobile: {
-    color: 'white',
-    fontSize: 10,
-    minWidth: 100,
-    textAlign: 'center'
-  }
+  flagButton: { flex: 1, marginHorizontal: 10 },
+  flagContainerLandScape: {
+    ...defaultStyles.flagContainer,
+    padding: 20,
+  },
+  buttonPlayText: { 
+    color: 'white', 
+    fontSize: 25,
+    fontWeight: 'bold',
+    minWidth: 140, 
+    textAlign: 'center',
+    paddingLeft: 25
+  },
 });

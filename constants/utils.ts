@@ -3,8 +3,8 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const IsMobileDevice = () => {
-    return Device.deviceType === Device.DeviceType.PHONE;
+export const IsTablet = () => {
+    return Device.deviceType === Device.DeviceType.TABLET;
 }
 
 export const GetDeviceOrientation = async () => {
@@ -33,6 +33,15 @@ export const IsPortrait = (orientation: ScreenOrientation.Orientation | null) =>
         case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
         default:
         return false;
+    }
+}
+export const IsLandscape = (orientation: ScreenOrientation.Orientation | null) => {
+    switch (orientation) {
+        case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+        case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+            return true;
+        default:
+            return false;
     }
 }
 
