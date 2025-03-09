@@ -159,7 +159,7 @@ export default function TabOneScreen() {
     <View style={stylesLandScapeTablet.container}>
       <TextInput
         style={getTextBoxStyle()}
-        placeholder = { `Landscape` + IsLandscape(orientation).toString() + `| Tablet: `+ IsTablet()} // "Escribe lo que quieras decir..." 
+        placeholder = "Escribe lo que quieras decir..."// { `Landscape` + IsLandscape(orientation).toString() + `| Tablet: `+ IsTablet()}  
         editable={isAdvancedMode}
         showSoftInputOnFocus={isAdvancedMode}
         multiline
