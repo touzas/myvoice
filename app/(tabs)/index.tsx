@@ -11,37 +11,49 @@ import SpainFlag from '@/assets/images/SpainFlag';
 import UkFlag from '@/assets/images/UkFlag';
 import { IsTablet, IsLandscape, IsDebug, GetSavedData } from '@/constants/utils';
 
-export default function TabOneScreen() {
-  const defaultIconSize = IsTablet() ? 42 : 18;
-  const [isUppercase, setIsUppercase] = useState(true);
-  const [inputValue, setInputValue] = useState('');
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [orientation, setOrientation] = useState<ScreenOrientation.Orientation | null>(null);
-  const [log, setLogsByDate] = useState<{ [date: string]: string[] }>({});
-  const [isAdvancedMode, setAdvancedMode] = useState(false);
- 
-  useEffect(() => { 
-    const subscribeToOrientationChanges = async () => { 
-      const currentOrientation = await ScreenOrientation.getOrientationAsync(); 
-      setOrientation(currentOrientation); 
-      const subscription = ScreenOrientation.addOrientationChangeListener((event) => { 
-        setOrientation(event.orientationInfo.orientation); 
-      }); 
-      return () => { 
-        ScreenOrientation.removeOrientationChangeListener(subscription); 
-      }; 
-    }; 
-	const loadStoredValue = async () => {
-		IsDebug && console.log('Cargando datos guardados');
-		let storedData = await GetSavedData();
-		if (storedData !== null){
-			setAdvancedMode(storedData.isAdvancedMode);
-		}
-	};
+export interface ISavedData{
+	selectedVoiceES: string;
+	selectedVoiceEN: string;
+	isAdvancedMode: boolean;
+	mathLength: number;
+	name: string;
+}
 
-	loadStoredValue();
-    subscribeToOrientationChanges();
-  }, []);
+export default function TabOneScreen() {
+	const defaultIconSize = IsTablet() ? 42 : 18;
+	const [isUppercase, setIsUppercase] = useState(true);
+	const [inputValue, setInputValue] = useState('');
+	const [isSpeaking, setIsSpeaking] = useState(false);
+	const [orientation, setOrientation] = useState<ScreenOrientation.Orientation | null>(null);
+	const [log, setLogsByDate] = useState<{ [date: string]: string[] }>({});
+	const [isAdvancedMode, setAdvancedMode] = useState(false);
+	const [ESVoice, setESVoice] = useState('es-ES-language');
+	const [ENVoice, setENVoice] = useState('en-US-language');
+
+	useEffect(() => { 
+		const subscribeToOrientationChanges = async () => { 
+			const currentOrientation = await ScreenOrientation.getOrientationAsync(); 
+			setOrientation(currentOrientation); 
+			const subscription = ScreenOrientation.addOrientationChangeListener((event) => { 
+				setOrientation(event.orientationInfo.orientation); 
+			}); 
+			return () => { 
+				ScreenOrientation.removeOrientationChangeListener(subscription); 
+			}; 
+		}; 
+		const loadStoredValue = async () => {
+			IsDebug && console.log('Cargando datos guardados');
+			let storedData:ISavedData = await GetSavedData();
+			if (storedData !== null){
+				setESVoice(storedData.selectedVoiceES);
+				setENVoice(storedData.selectedVoiceEN);
+				setAdvancedMode(storedData.isAdvancedMode);
+			}
+		};
+
+		loadStoredValue();
+		subscribeToOrientationChanges();
+	}, []);
 
 	const getCurrentDate = (): string => {
 		const date = new Date();
@@ -49,85 +61,119 @@ export default function TabOneScreen() {
 	};
 
 	const addLogEntry = async (logData: string) => {
-        if (logData.trim() === '') return;
+		if (logData.trim() === '') return;
 
-        const today = getCurrentDate();
-        const updatedLogs: { [key: string]: string[] } = { ...log };
+		const today = getCurrentDate();
+		const updatedLogs: { [key: string]: string[] } = { ...log };
 
-        if (!updatedLogs[today]) {
-            updatedLogs[today] = [];
-        }
+		if (!updatedLogs[today]) {
+			updatedLogs[today] = [];
+		}
 
-        updatedLogs[today].push(logData);
-        setLogsByDate(updatedLogs);
+		updatedLogs[today].push(logData);
+		setLogsByDate(updatedLogs);
 
-        try {
-            await AsyncStorage.setItem('eireVoiceLog', JSON.stringify(updatedLogs));
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo guardar la entrada.');
-        }
-    };
+		try {
+			await AsyncStorage.setItem('eireVoiceLog', JSON.stringify(updatedLogs));
+		} catch (error) {
+			Alert.alert('Error', 'No se pudo guardar la entrada.');
+		}
+	};
 
-  const handleKeyPress = (key: string) => {
-    const actions: Record<string, () => void> = {
-      '⌫': () => setInputValue((prev) => prev.slice(0, -1)),
-      Borrar: () => Alert.alert('Estás segur@?', '¿Quieres borrar todo el texto?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'OK', onPress: () => setInputValue('') },
-      ]),
-      Espacio: () => handleKeyPress(' '),
-      '⇑': () => setIsUppercase(!isUppercase),
-      '↲': () => setInputValue((prev) => prev + '\n'),
-    };
+	const handleKeyPress = (key: string) => {
+		const actions: Record<string, () => void> = {
+		'⌫': () => setInputValue((prev) => prev.slice(0, -1)),
+		Borrar: () => Alert.alert('Estás segur@?', '¿Quieres borrar todo el texto?', [
+			{ text: 'Cancel', style: 'cancel' },
+			{ text: 'OK', onPress: () => setInputValue('') },
+		]),
+		Espacio: () => handleKeyPress(' '),
+		'⇑': () => setIsUppercase(!isUppercase),
+		'↲': () => setInputValue((prev) => prev + '\n'),
+		};
 
-    if (!actions[key]) {
-      setInputValue((prev) => prev + (isUppercase ? key.toUpperCase() : key.toLowerCase()));
-    } else {
-      actions[key]();
-    }
-  };
+		if (!actions[key]) {
+		setInputValue((prev) => prev + (isUppercase ? key.toUpperCase() : key.toLowerCase()));
+		} else {
+		actions[key]();
+		}
+	};
 
-  const playAudio = async (language: string) => {
-    if (isSpeaking) return;
-    setIsSpeaking(true);
-    addLogEntry(language + '=>' + inputValue);
-    await Speech.speak(
-      inputValue, 
-      { 
-        voice: language === 'es' ? 'es-es-x-eed-local' : "en-us-x-tpc-local", 
-        language, pitch: 1.5, rate: 1 
-      }
-    );
-    setIsSpeaking(false);
-  };
+	const playAudio = async (language: string) => {
+		if (isSpeaking) return;
+		setIsSpeaking(true);
+		addLogEntry(language + '=>' + inputValue);
+		await Speech.speak(
+			inputValue, 
+			{ 
+				voice: language === 'es-ES' ? ESVoice : ENVoice, 
+				language, pitch: 1.5, rate: 1 
+			}
+		);
+		setIsSpeaking(false);
+	};
 
-  const renderFlagButton = (language: string, Flag: React.FC<{ width: number, height: number }>, label: string) => (
-    <Pressable style={stylesLandScapeTablet.flagButton} onPress={() => playAudio(language)}>
-      <Animated.View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.flagContainerLandScape: defaultStyles.flagContainer}>
-        <Flag width={defaultIconSize} height={defaultIconSize} />
-        <Text style={stylesLandScapeTablet.buttonPlayText}>{label}</Text>
-      </Animated.View>
-    </Pressable>
-  );
+	const renderFlagButton = (language: string, Flag: React.FC<{ width: number, height: number }>, label: string) => {
+	
+		if (IsTablet()){
+			return (
+				<Pressable style={stylesLandScapeTablet.flagButton} onPress={() => playAudio(language)} disabled={isSpeaking}>
+					<Animated.View style={IsLandscape(orientation) ? stylesLandScapeTablet.flagContainerLandScape: defaultStyles.flagContainer}>
+						<Flag width={defaultIconSize} height={defaultIconSize} />
+						<Text style={stylesLandScapeTablet.buttonPlayText}>{label}</Text>
+					</Animated.View>
+				</Pressable>
+			);
+		}
+		return (
+			<Pressable style={stylesLandScapeMobile.flagButton} onPress={() => playAudio(language)} disabled={isSpeaking}>
+				<Animated.View style={IsLandscape(orientation) ? stylesLandScapeMobile.flagContainerLandScape: defaultStyles.flagContainer}>
+					<Flag width={defaultIconSize} height={defaultIconSize} />
+					<Text style={stylesLandScapeMobile.buttonPlayText}>{label}</Text>
+				</Animated.View>
+			</Pressable>
+		);
+	}
+
+	const getFlagSectionStyle = () => {
+		const isLandscape = IsLandscape(orientation);
+		const isTabletDevice = IsTablet();
+	  
+		const styles = isTabletDevice ? 
+		  (isLandscape ? stylesLandScapeTablet : defaultStyles) :
+		  (isLandscape ? stylesLandScapeMobile : defaultStyles);
+	  
+		return isAdvancedMode ? 
+		  (isLandscape ? styles.flagSectionLandScapeAdvanced : styles.flagSectionAdvanced) :
+		  (isLandscape ? styles.flagSectionLandScape : styles.flagSection);
+	  };
+
+	const getTextBoxStyle = () => {
+		if (IsTablet()){
+			return IsLandscape(orientation) ? stylesLandScapeTablet.inputTextTabletLandScape : defaultStyles.inputText;
+		}
+		return IsLandscape(orientation) ? stylesLandScapeMobile.inputTextTabletLandScape : stylesLandScapeMobile.inputTextTabletPortrait;
+	};
 
   const renderContent = () => (
     <View style={stylesLandScapeTablet.container}>
       <TextInput
-        style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.inputTextTabletLandScape : defaultStyles.inputText}
-        placeholder = "Escribe lo que quieras decir..." //{ `Landscape` + IsLandscape(orientation).toString() + `| Tablet: `+ IsTablet()} 
+        style={getTextBoxStyle()}
+        placeholder = { `Landscape` + IsLandscape(orientation).toString() + `| Tablet: `+ IsTablet()} // "Escribe lo que quieras decir..." 
         editable={isAdvancedMode}
         showSoftInputOnFocus={isAdvancedMode}
         multiline
         value={inputValue}
 		onChangeText={setInputValue}
       />
-      <View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.keyboardSectionLandScape : defaultStyles.keyboardSection}>
+      <View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.keyboardSectionLandScape : 
+		!IsTablet() && IsLandscape(orientation) ? stylesLandScapeMobile.keyboardSectionLandScape : defaultStyles.keyboardSection}>
 		{!isAdvancedMode && (
 			<View style={stylesLandScapeTablet.keyboard}>
 				<KeyboardTextToVoice onKeyPress={handleKeyPress} isUpperCase={isUppercase} />
 			</View>
 		)}
-        <View style={IsTablet() && IsLandscape(orientation) ? stylesLandScapeTablet.flagSectionLandScape : defaultStyles.flagSection}>
+        <View style={getFlagSectionStyle()}>
           {renderFlagButton('es-ES', SpainFlag, 'Castellano')}
           {renderFlagButton('en-US', UkFlag, 'English')}
         </View>
@@ -147,7 +193,7 @@ const defaultStyles = StyleSheet.create({
     fontWeight: '900',
     backgroundColor: 'white',
     padding: 10,
-    flex: 1.8,
+    flex: 1.5,
     fontSize: 40,
   },
   keyboardSection: { 
@@ -163,14 +209,19 @@ const defaultStyles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 2,
     borderColor: Colors.PinkTheme.Purple,
+	paddingLeft: 30,	
   },
   flagSection: { 
     flexDirection: 'row',
     justifyContent: 'space-around', 
     paddingVertical: 10 
   },
+  flagSectionLandScapeAdvanced: {
+  },
+  flagSectionAdvanced: {},
+  flagSectionLandScape:{},
+  	
 });
-
 
 const stylesLandScapeTablet = StyleSheet.create({
   container: { 
@@ -180,13 +231,12 @@ const stylesLandScapeTablet = StyleSheet.create({
   },
   inputTextTabletLandScape: {
     ...defaultStyles.inputText,
-    flex: 3,
+    flex: 2,
     fontSize: 40,
   },
   keyboardSectionLandScape: { 
     flexDirection: 'row',
     flex: 3,
-    backgroundColor: 'red',
   },
   keyboard: {
     flex:1,
@@ -210,4 +260,51 @@ const stylesLandScapeTablet = StyleSheet.create({
     textAlign: 'center',
     paddingLeft: 25
   },
+  flagSectionLandScapeAdvanced: {},
+  flagSectionAdvanced: {},
+  flagSection: {},
+});
+
+const stylesLandScapeMobile = StyleSheet.create({
+	container: { 
+	  flex: 3, 
+	  backgroundColor: Colors.PinkTheme.Purple, 
+	  padding: 0 
+	},
+	inputTextTabletPortrait: {
+		...defaultStyles.inputText,
+		flex: 1,
+		fontSize: 40,
+	  },
+	inputTextTabletLandScape: {
+	  ...defaultStyles.inputText,
+	  flex: 0.20,
+	  fontSize: 30,
+	},
+	keyboardSectionLandScape: { 
+	  flexDirection: 'column',
+	  flex: 1.25,
+	},
+	flagSectionLandScape: { 
+	  flexDirection: 'row',
+	  justifyContent: 'space-around', 
+	  paddingVertical: 0,
+	  flex: 0.15,
+	},
+	flagButton: { flex: 1, marginHorizontal: 10 },
+	flagContainerLandScape: {
+	  ...defaultStyles.flagContainer,
+	  padding: 1,
+	},
+	buttonPlayText: { 
+		color: 'white', 
+		fontSize: 15,
+		fontWeight: 'bold',
+		minWidth: 140, 
+		textAlign: 'center',
+		paddingLeft: 5
+	},
+	flagSectionLandScapeAdvanced: {	},
+	flagSectionAdvanced: {},
+	flagSection: {},
 });

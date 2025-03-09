@@ -1,8 +1,9 @@
 import Colors from '@/constants/Colors';
 import { KeyboardKeys } from '@/constants/Keys';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, View, Text } from 'react-native';
 import Key from './Key';
+import { IsTablet } from '@/constants/utils';
 
 type KeyboardProps = {
     isUpperCase: boolean, 
@@ -10,10 +11,12 @@ type KeyboardProps = {
 };
 
 const KeyboardTextToVoice: React.FC<KeyboardProps> = ({ isUpperCase, onKeyPress }) => {
-    const groupedKeys = KeyboardKeys.reduce((acc, key) => {
+  const groupedKeys = useMemo(() => { 
+    return KeyboardKeys.reduce((acc, key) => {
         acc[key.line] = acc[key.line] ? [...acc[key.line], key] : [key];
         return acc;
     }, {} as Record<number, typeof KeyboardKeys>);
+  }, [KeyboardKeys]);
 
     return (
         <View style={styles.keyboard}>
@@ -50,6 +53,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         marginVertical: 4,
+        ...!IsTablet() && { marginVertical: 1 },
     },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,33 +9,93 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { IsTablet } from "@/constants/utils";
+
 type Task = {
   id: string;
   title: string;
   deleted: boolean;
   completed: boolean;
 };
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const Agenda: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [taskTitle, setTaskTitle] = useState<string>("");
+	const [tasks, setTasks] = useState<Task[]>([]);
+	const [taskTitle, setTaskTitle] = useState<string>("");
+	const [savedTasks, setTasksByDate] = useState<{ [date: string]: string[] }>({});
 
-  const handleAddTask = () => {
-    if (!taskTitle.trim()) {
-      Alert.alert("Error!", "La tarea no puede estar vacía.");
-      return;
-    }
-    const newTask: Task = {
-      id: (tasks.length + 1).toString(),
-      title: taskTitle.trim(),
-      completed: false,
-      deleted: false,
-    };
-    setTasks((prevTasks) => [newTask, ...prevTasks]);
-    setTaskTitle("");
-  };
+	const loadStoredTasks = async () => {
+		try {
+			setTasks([]);
+			const storedTasks = await AsyncStorage.getItem('eireVoiceTasks');
+			if (storedTasks) {
+				setTasksByDate(JSON.parse(storedTasks));
+
+				Object.keys(savedTasks).length > 0 ? (
+					Object.entries(savedTasks).map(([date, entries]) => 
+					{
+						if (date == getCurrentDate()) {
+							setTasks(entries.map((title: string, index: number) => ({
+								id: index.toString(),
+								title,
+								completed: false,
+								deleted: false,
+							})));
+						}
+					})
+				): null;
+			}
+		} catch (error) {
+			console.log('Error', 'No se pudieron cargar los registros.');
+		}
+	};
+
+	useEffect(() => { 
+		loadStoredTasks();
+	}, []);
+	
+	const getCurrentDate = (): string => {
+		const date = new Date();
+		return date.toISOString().split('T')[0];
+	};
+
+	const addTaskEntry = async (taskTitle: string) => {
+		if (taskTitle.trim() === '') return;
+
+		const today = getCurrentDate();
+		const updatedLogs: { [key: string]: string[] } = { ...savedTasks };
+
+		if (!updatedLogs[today]) {
+			updatedLogs[today] = [];
+		}
+
+		updatedLogs[today].push(taskTitle);
+		setTasksByDate(updatedLogs);
+
+		try {
+			await AsyncStorage.setItem('eireVoiceTasks', JSON.stringify(updatedLogs));
+		} catch (error) {
+			Alert.alert('Error', 'No se pudo guardar la entrada.');
+		}
+	};
+
+	const handleAddTask = () => {
+		if (!taskTitle.trim()) {
+			Alert.alert("Error!", "La tarea no puede estar vacía.");
+			return;
+		}
+		const newTask: Task = {
+			id: (tasks.length + 1).toString(),
+			title: taskTitle.trim(),
+			completed: false,
+			deleted: false,
+		};
+		setTasks((prevTasks) => [newTask, ...prevTasks]);
+		addTaskEntry(taskTitle);
+		setTaskTitle("");
+	};
 
   const handleClearTask = () => {
     Alert.alert('Estás segur@?', '¿Quieres borrar todo?', [
@@ -112,7 +172,7 @@ const Agenda: React.FC = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <View style={styles.container}>
-        <Text style={styles.title}>Agenda</Text>
+        {IsTablet() && (<Text style={styles.title}>Agenda</Text>)} 
         <View style={styles.inputContainer}>
 			<TextInput
 				style={styles.input}
@@ -138,9 +198,12 @@ const Agenda: React.FC = () => {
           extraData={tasks.length}
           onDragEnd={({ data }) => setTasks(data.reverse())}
         />
-        <View style={{ alignItems: 'center' }} >
+        <View style={{ display: 'flex', flex: 1, flexDirection:"row", alignItems: "flex-start" }} >
           <TouchableOpacity style={styles.cleanButton} onPress={handleClearTask}>
             <Text style={styles.addButtonText}>Eliminar todas</Text>
+          </TouchableOpacity>
+		  <TouchableOpacity style={styles.loadStoredtasks} onPress={loadStoredTasks}>
+            <Text style={styles.addButtonText}>Cargar tareas</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -196,6 +259,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     justifyContent: "center",
+	flex: 1,
+  },
+  loadStoredtasks: {
+    marginLeft: 10,
+    backgroundColor: 'green',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    justifyContent: "center",
+	flex: 1,
   },
   task: {
     flexDirection: "row",

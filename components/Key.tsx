@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import Colors from '@/constants/Colors';
+import { IsTablet } from '@/constants/utils';
 
 interface KeyProps {
   label: string;
@@ -9,18 +10,17 @@ interface KeyProps {
   onPress: () => void;
 }
 
-const Key: React.FC<KeyProps> = ({ label, special, upercase, onPress }) => {
+const Key: React.FC<KeyProps> = React.memo(({ label, special, upercase, onPress }) => {
+  const style = useMemo(() => getStyle(label), [label]);
+
   return (
-    <TouchableOpacity
-      style={getStyle(label)}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={style} onPress={onPress}>
       <Text style={[styles.keyText, special ? styles.keyTextWhite : null]}>
-        { !upercase && !special ? label.toLocaleLowerCase() : label.toLocaleUpperCase() }
+        {(!upercase && !special ? label.toLocaleLowerCase() : label.toLocaleUpperCase())}
       </Text>
     </TouchableOpacity>
   );
-};
+});
 
 const getStyle = (key: string) => {
     if (key === 'Espacio') 
@@ -35,6 +35,7 @@ const defaultStyle = StyleSheet.create({
         flex:1,
         borderWidth: 1,
         borderRadius: 18,
+		...!IsTablet() && { borderRadius: 10 },
         borderColor: Colors.PinkTheme.Purple,
         backgroundColor: 'white',
         color: Colors.PinkTheme.Purple,
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     },
     keyText: {
         fontSize: 12,
-        ...Dimensions.get('window').height >= 1200 && {
+        ...IsTablet() && {
             fontSize: 25,
         },
         color: 'purple',
@@ -91,12 +92,13 @@ const styles = StyleSheet.create({
     },
     keyTextWhite: {
         fontSize: 12,
-        ...Dimensions.get('window').height >= 1200 && {
-            fontSize: 25,
-        },
+		...IsTablet() && {
+			fontSize: 25,
+		},
         color: 'white',
         fontWeight: '900'
     },
 });
+
 
 export default Key;

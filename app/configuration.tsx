@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, TextInput, Button, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
+import { Platform, TextInput, Button, StyleSheet, Modal, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { Text, View } from '@/components/Themed';
@@ -225,29 +225,30 @@ const MyComponent: React.FC = () => {
 				onRequestClose={closeModal}
 			>
 				<View style={stylesModal.modalBackground}>
-				<View style={stylesModal.modalContent}>
-					{Object.keys(log).length > 0 ? (
-						Object.entries(log).map(([date, entries]) => (
-							<View key={date} style={stylesLog.logSection}>
-								<View style={stylesLog.dateHeader}>
-									<Text style={stylesLog.dateText}>{date}</Text>
-									<Button title="Eliminar" onPress={() => clearLogsByDate(date)} color="#ff4444" />
-								</View>
-								{entries.map((entry, index) => (
-									<Text key={`${date}-${index}`} style={stylesLog.logItem}>
-										{index + 1}. {entry}
-									</Text>
-								))}
-							</View>
-						))
-					) : (
-						<Text style={stylesLog.noLogsText}>No hay registros disponibles.</Text>
-					)}
-
-					<TouchableOpacity style={stylesModal.closeButton} onPress={closeModal}>
-					<Text style={stylesModal.closeButtonText}>Cerrar</Text>
-					</TouchableOpacity>
-				</View>
+					<View style={stylesModal.modalContent}>
+						<ScrollView style={{maxHeight: 400}}>
+							{Object.keys(log).length > 0 ? (
+								Object.entries(log).map(([date, entries]) => (
+									<View key={date} style={stylesLog.logSection}>
+										<View style={stylesLog.dateHeader}>
+											<Text style={stylesLog.dateText}>{date}</Text>
+											<Button title="Eliminar" onPress={() => clearLogsByDate(date)} color="#ff4444" />
+										</View>
+										{entries.map((entry, index) => (
+											<Text key={`${date}-${index}`} style={stylesLog.logItem}>
+												{index + 1}. {entry}
+											</Text>
+										))}
+									</View>
+								))
+							) : (
+								<Text style={stylesLog.noLogsText}>No hay registros disponibles.</Text>
+							)}
+						</ScrollView>
+						<TouchableOpacity style={stylesModal.closeButton} onPress={closeModal}>
+							<Text style={stylesModal.closeButtonText}>Cerrar</Text>
+						</TouchableOpacity>
+					</View>
 				</View>
 			</Modal>
 		</View>
